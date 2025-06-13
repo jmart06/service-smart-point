@@ -2,12 +2,15 @@
 import React from 'react';
 import { ShoppingCart, User, Search, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const Header = () => {
   const { user, signOut } = useAuth();
+  const { getTotalItems } = useCart();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -27,6 +30,8 @@ const Header = () => {
       });
     }
   };
+
+  const totalItems = getTotalItems();
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -56,9 +61,22 @@ const Header = () => {
 
           {/* Right side buttons */}
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="hidden sm:flex items-center space-x-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="hidden sm:flex items-center space-x-1 relative"
+              onClick={() => navigate('/cart')}
+            >
               <ShoppingCart className="h-5 w-5" />
-              <span>Cart (0)</span>
+              <span>Cart</span>
+              {totalItems > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                >
+                  {totalItems}
+                </Badge>
+              )}
             </Button>
             
             {user ? (

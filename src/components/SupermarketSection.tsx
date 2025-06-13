@@ -3,9 +3,13 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/hooks/use-toast';
 
 const SupermarketSection = () => {
   const [activeCategory, setActiveCategory] = useState('All');
+  const { addToCart } = useCart();
+  const { toast } = useToast();
 
   const categories = ['All', 'Grocery', 'Snacks', 'Beverages', 'Household'];
 
@@ -76,6 +80,23 @@ const SupermarketSection = () => {
     ? products 
     : products.filter(product => product.category === activeCategory);
 
+  const handleAddToCart = (product: typeof products[0]) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      image: product.image,
+      category: product.category,
+      discount: product.discount,
+    });
+
+    toast({
+      title: "Added to cart",
+      description: `${product.name} has been added to your cart.`,
+    });
+  };
+
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,6 +162,7 @@ const SupermarketSection = () => {
                   className="w-full" 
                   disabled={!product.inStock}
                   variant={product.inStock ? "default" : "secondary"}
+                  onClick={() => handleAddToCart(product)}
                 >
                   {product.inStock ? "Add to Cart" : "Out of Stock"}
                 </Button>
