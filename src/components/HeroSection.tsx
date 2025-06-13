@@ -2,8 +2,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, FileText, User, Printer } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const HeroSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const services = [
     {
       icon: ShoppingCart,
@@ -31,6 +36,16 @@ const HeroSection = () => {
     }
   ];
 
+  const handleGetStarted = () => {
+    if (user) {
+      // If user is logged in, they can start shopping
+      console.log('User is logged in, proceed with shopping');
+    } else {
+      // If user is not logged in, redirect to auth page
+      navigate('/auth');
+    }
+  };
+
   return (
     <div className="bg-gradient-to-r from-primary/10 to-blue-50 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,13 +57,18 @@ const HeroSection = () => {
             Your neighborhood digital service center offering groceries, banking, government services, and document solutions - all under one roof.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="text-lg px-8 py-6">
-              Start Shopping
+            <Button size="lg" className="text-lg px-8 py-6" onClick={handleGetStarted}>
+              {user ? 'Start Shopping' : 'Get Started'}
             </Button>
             <Button variant="outline" size="lg" className="text-lg px-8 py-6">
               Browse Services
             </Button>
           </div>
+          {!user && (
+            <p className="text-sm text-muted-foreground mt-4">
+              Sign up to access all features and start shopping
+            </p>
+          )}
         </div>
 
         {/* Services Grid */}

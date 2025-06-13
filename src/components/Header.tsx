@@ -1,15 +1,39 @@
 
 import React from 'react';
-import { ShoppingCart, User, Search } from 'lucide-react';
+import { ShoppingCart, User, Search, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const Header = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center cursor-pointer" onClick={() => navigate('/')}>
             <div className="flex-shrink-0">
               <h1 className="text-2xl font-bold text-primary">SmartSeva</h1>
               <p className="text-xs text-muted-foreground">Your Digital Service Center</p>
@@ -36,10 +60,23 @@ const Header = () => {
               <ShoppingCart className="h-5 w-5" />
               <span>Cart (0)</span>
             </Button>
-            <Button variant="outline" size="sm" className="flex items-center space-x-1">
-              <User className="h-5 w-5" />
-              <span className="hidden sm:inline">Login</span>
-            </Button>
+            
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600 hidden sm:inline">
+                  Welcome, {user.email}
+                </span>
+                <Button variant="outline" size="sm" onClick={handleSignOut} className="flex items-center space-x-1">
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Sign Out</span>
+                </Button>
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="flex items-center space-x-1">
+                <User className="h-5 w-5" />
+                <span className="hidden sm:inline">Login</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
