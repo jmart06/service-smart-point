@@ -2,7 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+const mistralApiKey = Deno.env.get('MISTRAL_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,43 +35,40 @@ serve(async (req) => {
   try {
     const { message, conversationHistory = [] } = await req.json();
 
-    if (!geminiApiKey) {
-      throw new Error('Gemini API key not configured');
+    if (!mistralApiKey) {
+      throw new Error('Mistral API key not configured');
     }
 
-    // Prepare the conversation for Gemini
+    // Prepare the conversation for Mistral AI
     const messages = [
-      { role: 'user', parts: [{ text: SMARTSEVA_CONTEXT }] },
-      { role: 'model', parts: [{ text: 'I understand. I am SmartSeva AI, ready to help with both SmartSeva-related questions and general inquiries. How can I assist you today?' }] },
+      { role: 'system', content: SMARTSEVA_CONTEXT },
       ...conversationHistory.map((msg: any) => ({
-        role: msg.isUser ? 'user' : 'model',
-        parts: [{ text: msg.content }]
+        role: msg.isUser ? 'user' : 'assistant',
+        content: msg.content
       })),
-      { role: 'user', parts: [{ text: message }] }
+      { role: 'user', content: message }
     ];
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${mistralApiKey}`,
       },
       body: JSON.stringify({
-        contents: messages,
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        }
+        model: 'mistral-large-latest',
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1024,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+      throw new Error(`Mistral API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.candidates[0].content.parts[0].text;
+    const aiResponse = data.choices[0].message.content;
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
